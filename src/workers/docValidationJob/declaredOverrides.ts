@@ -2,7 +2,6 @@ import {
   DeclaredDocumentData,
   DocValidationCrossCheckResult,
   DocValidationMatchedInvoice,
-  DocValidationSenderComparison,
 } from "../../modules/docValidation/types";
 import { maskCpfCnpj } from "../../modules/docValidation/normalizeDocument";
 
@@ -15,26 +14,16 @@ export function applyDeclaredOverrides(
   crossCheck: DocValidationCrossCheckResult,
   declaredData: DeclaredDocumentData,
 ): {
-  sender: DocValidationSenderComparison;
   matchedInvoice: DocValidationMatchedInvoice;
 } {
-  const sender: DocValidationSenderComparison = {
-    ...crossCheck.sender,
-    declaredName: declaredData.invoiceSenderName,
-    declaredDocument: declaredData.invoiceSenderDocument,
-    invoiceDocument: crossCheck.sender.invoiceDocument
-      ? maskCpfCnpj(crossCheck.sender.invoiceDocument)
-      : null,
-  };
-
   const matchedInvoice: DocValidationMatchedInvoice = {
     ...crossCheck.matchedInvoice,
-    declaredName: declaredData.invoiceRecipientName,
-    declaredDocument: declaredData.invoiceRecipientDocument,
+    declaredName: declaredData.cliName,
+    declaredDocument: declaredData.cliDocument,
     invoiceDocument: crossCheck.matchedInvoice.invoiceDocument
       ? maskCpfCnpj(crossCheck.matchedInvoice.invoiceDocument)
       : null,
   };
 
-  return { sender, matchedInvoice };
+  return { matchedInvoice };
 }

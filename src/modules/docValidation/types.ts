@@ -1,21 +1,8 @@
 export interface DeclaredDocumentData {
+  contract: string;
   plate: string;
-  grossWeightKg: number | null;
-  tareWeightKg: number | null;
-  netWeightKg: number | null;
-  loadingOrder: number | null;
-  contract: string | null;
-  accessKey: string | null;
-  driverName: string | null;
-  driverDocument: string | null;
-  driverPhone: string | null;
-  invoiceRecipientName: string;
-  invoiceRecipientDocument: string;
-  invoiceSenderName: string;
-  invoiceSenderDocument: string;
-  invoiceDate: string | null;
-  invoiceUnitValue: number | null;
-  invoiceTotalValue: number | null;
+  cliName: string;
+  cliDocument: string;
 }
 
 // Campos extraídos da Ordem de Carregamento. Peso bruto/tara, contrato, chave de acesso e dados
@@ -116,17 +103,16 @@ export type DocValidationExtractedDocument<TFields extends object> =
 
 // Identifica, entre as notas extraídas em "invoices", quais são as corretas para declaredData.
 // Pode haver mais de uma NF correta (mesmo destinatário, chaves de acesso diferentes) — nesse
-// caso "accessKeys" tem mais de um item e os pesos das NFs correspondentes são somados na
-// comparação de peso (ver DocValidationFieldCheck). "found" prioriza documento idêntico
+// caso "accessKeys" tem mais de um item. "found" prioriza documento idêntico
 // (recipientDocumentMatch): quando pelo menos uma nota bate no documento, TODAS as que baterem
 // entram em "accessKeys". Só cai no fallback por nome (recipientDocumentMatch fica false) quando
 // NENHUMA nota bate no documento e alguma tem nome com similaridade >= 80% — nesse caso apenas
 // uma nota (a de maior similaridade) entra em "accessKeys". "recipientNameSimilarityPercent" só é
 // null quando não há nenhuma nota fiscal presente no PDF — ver DOC_VALIDATION_CROSS_CHECK_PROMPT.
 // "declaredName"/"declaredDocument" e "invoiceName"/"invoiceDocument" espelham o par
-// declarado-vs-encontrado já usado em DocValidationSenderComparison — sempre sobrescritos em
-// processDocValidationJob.ts a partir de declaredData/extraction (nunca confiados direto na
-// resposta da IA), para garantir que documentos saiam sempre com máscara.
+// declarado-vs-encontrado — sempre sobrescritos em processDocValidationJob.ts a partir de
+// declaredData/extraction (nunca confiados direto na resposta da IA), para garantir que
+// documentos saiam sempre com máscara.
 export interface DocValidationMatchedInvoice {
   found: boolean;
   accessKeys: string[];
@@ -144,15 +130,6 @@ export interface DocValidationContractComparison {
   match: boolean;
 }
 
-export interface DocValidationSenderComparison {
-  declaredName: string;
-  declaredDocument: string;
-  invoiceName: string | null;
-  invoiceDocument: string | null;
-  documentMatch: boolean;
-  nameSimilarityPercent: number | null;
-}
-
 export interface DocValidationPlateComparison {
   declared: string | null;
   invoice: string | null;
@@ -161,39 +138,14 @@ export interface DocValidationPlateComparison {
   confidencePercent: number;
 }
 
-// Formato uniforme de comparação campo a campo usado por todo dado declarado que NÃO seja placa,
-// contrato ou remetente/destinatário da NF (esses três continuam com formato próprio acima —
-// placa e remetente/destinatário porque a comparação já é feita como parte da identificação da
-// nota correta, contrato porque uma divergência já gera bloqueio via doc_validation_issues, ver
-// processDocValidationJob.ts). "value" é sempre o valor CORRETO (extraído do documento fonte de
-// maior prioridade disponível) — é o que o cliente deve usar para atualizar o cadastro dele
-// quando "needsUpdate" for true. "message" só é preenchido (não-null) quando precisa alertar
-// algo, ou seja, quando "needsUpdate" é true; do contrário fica null.
-export interface DocValidationFieldCheck {
-  value: string | number | null;
-  needsUpdate: boolean;
-  message: string | null;
-}
-
-// Comparação de invoiceDate/invoiceUnitValue feita por nota fiscal correta individualmente (ver
-// matchedInvoice.accessKeys) — diferente de invoiceTotalValue, que é somado entre as notas.
-export interface DocValidationInvoiceFieldCheck {
-  accessKey: string;
-  invoiceDate: DocValidationFieldCheck;
-  invoiceUnitValue: DocValidationFieldCheck;
-}
-
-// Só a parte de "identidade" da validação cruzada (qual nota é a correta, se placa/contrato/
-// remetente batem) fica salva em doc_validation_results.dvrData — os CAMPO-CHECK por campo
-// (grossWeightKg, tareWeightKg, netWeightKg, loadingOrder, accessKey, driverName,
-// driverDocument, invoices, invoiceTotalValue) não são duplicados aqui: eles vão direto pro
-// payload do webhook (ver buildWebhookPayload em processDocValidationJob.ts), porque o
-// destinatário real desse diff é o cliente que declarou os dados, não o nosso banco.
+// Resultado da validação cruzada salvo em doc_validation_results.dvrData — identifica se a nota
+// correta foi encontrada (matchedInvoice) e se placa/contrato batem com o declarado. Não há mais
+// diff campo a campo pra atualização de cadastro: o webhook agora manda direto o que foi
+// extraído dos documentos (ver processDocValidationJob.ts).
 export interface DocValidationResult {
   matchedInvoice: DocValidationMatchedInvoice;
   plate: DocValidationPlateComparison;
   contract: DocValidationContractComparison;
-  sender: DocValidationSenderComparison;
 }
 
 export interface DocValidationExtractedData {
@@ -216,19 +168,9 @@ export interface DocValidationExtractionResult {
 
 // Resultado da 2ª chamada ao DeepSeek: recebe declaredData + o resultado da 1ª chamada e faz,
 // nessa ordem, toda comparação que depende de declaredData — identificação da nota fiscal
-// correta (matchedInvoice) e as comparações cruzadas de placa e peso.
+// correta (matchedInvoice) e as comparações cruzadas de placa e contrato.
 export interface DocValidationCrossCheckResult {
   matchedInvoice: DocValidationMatchedInvoice;
   plate: DocValidationPlateComparison;
   contract: DocValidationContractComparison;
-  sender: DocValidationSenderComparison;
-  grossWeightKg: DocValidationFieldCheck;
-  tareWeightKg: DocValidationFieldCheck;
-  netWeightKg: DocValidationFieldCheck;
-  loadingOrder: DocValidationFieldCheck;
-  accessKey: DocValidationFieldCheck;
-  driverName: DocValidationFieldCheck;
-  driverDocument: DocValidationFieldCheck;
-  invoices: DocValidationInvoiceFieldCheck[];
-  invoiceTotalValue: DocValidationFieldCheck;
 }

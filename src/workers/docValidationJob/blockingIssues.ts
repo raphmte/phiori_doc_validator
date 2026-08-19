@@ -2,16 +2,13 @@ import { createDocValidationIssue } from "../../database/repositories/docValidat
 import {
   DocValidationCrossCheckResult,
   DocValidationMatchedInvoice,
-  DocValidationSenderComparison,
 } from "../../modules/docValidation/types";
 
 // Mensagens bloqueantes: quando alguma existir, o webhook vai com success:false e essas
-// mensagens direto no corpo (payload.message), sem o restante dos dados em "data" — ver
-// buildWebhookPayload.
+// mensagens direto no corpo (payload.message), sem o restante dos dados em "data".
 export async function collectBlockingIssues(
   dvaCode: string,
   crossCheck: DocValidationCrossCheckResult,
-  sender: DocValidationSenderComparison,
   matchedInvoice: DocValidationMatchedInvoice,
 ): Promise<string[]> {
   const blockingMessages: string[] = [];
@@ -46,27 +43,6 @@ export async function collectBlockingIssues(
         sendRecipientDocument: matchedInvoice.declaredDocument,
         invoiceRecipientName: matchedInvoice.invoiceName,
         invoiceRecipientDocument: matchedInvoice.invoiceDocument,
-      },
-    );
-
-    blockingMessages.push(message);
-  }
-
-  // Mesma regra de antes (documento E nome precisavam bater para "match" ser true), só que
-  // agora o nome vem como similaridade em vez de booleano — documento continua sendo o sinal
-  // decisivo para abrir o issue, mesmo que o nome também esteja disponível no payload.
-  if (!sender.documentMatch) {
-    const message = `O remetente da nota fiscal (${sender.invoiceName} - ${sender.invoiceDocument}) é diferente do remetente enviado pelo cliente (${sender.declaredName} - ${sender.declaredDocument}).`;
-
-    await createDocValidationIssue(
-      dvaCode,
-      "SENDER_MISMATCH",
-      message,
-      {
-        sendSenderName: sender.declaredName,
-        sendSenderDocument: sender.declaredDocument,
-        invoiceSenderName: sender.invoiceName,
-        invoiceSenderDocument: sender.invoiceDocument,
       },
     );
 

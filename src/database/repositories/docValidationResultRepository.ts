@@ -4,14 +4,13 @@ import { DocValidationResult } from "../../modules/docValidation/types";
 export async function saveDocValidationResult(
   conn: PoolConnection,
   dvaCode: string,
-  validation: DocValidationResult,
-  weightsMatch: boolean
+  validation: DocValidationResult
 ): Promise<void> {
   await conn.query(
     `INSERT INTO doc_validation_results
-      (dvaCode, dvrPlateConfidencePercent, dvrWeightsMatch, dvrData)
-     VALUES (?, ?, ?, ?)`,
-    [dvaCode, validation.plate.confidencePercent, weightsMatch, JSON.stringify(validation)]
+      (dvaCode, dvrPlateConfidencePercent, dvrData)
+     VALUES (?, ?, ?)`,
+    [dvaCode, validation.plate.confidencePercent, JSON.stringify(validation)]
   );
 
   const accessKeys = validation.matchedInvoice.accessKeys;

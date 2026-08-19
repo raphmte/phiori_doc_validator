@@ -1,0 +1,16 @@
+ALTER TABLE doc_validation_declared_data
+  CHANGE COLUMN dvdInvoiceRecipientName dvdCliName VARCHAR(255) NOT NULL,
+  CHANGE COLUMN dvdInvoiceRecipientDocument dvdCliDocument VARCHAR(20) NOT NULL,
+  DROP COLUMN dvdGrossWeightKg,
+  DROP COLUMN dvdTareWeightKg,
+  DROP COLUMN dvdNetWeightKg,
+  DROP COLUMN dvdLoadingOrder,
+  DROP COLUMN dvdAccessKey,
+  DROP COLUMN dvdDriverName,
+  DROP COLUMN dvdDriverDocument,
+  DROP COLUMN dvdDriverPhone,
+  DROP COLUMN dvdInvoiceSenderName,
+  DROP COLUMN dvdInvoiceSenderDocument,
+  DROP COLUMN dvdInvoiceDate,
+  DROP COLUMN dvdInvoiceUnitValue,
+  DROP COLUMN dvdInvoiceTotalValue;

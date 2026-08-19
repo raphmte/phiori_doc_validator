@@ -136,8 +136,7 @@ export async function markDocValidationsAsProcessing(
 export async function markDocValidationAsDone(
   dvaCode: string,
   pages: TDocumentAIPage[],
-  result: DocValidationExtractedData,
-  weightsMatch: boolean
+  result: DocValidationExtractedData
 ): Promise<void> {
   let conn: PoolConnection | undefined;
 
@@ -153,7 +152,7 @@ export async function markDocValidationAsDone(
     );
 
     await saveDocValidationExtractedDocuments(conn, dvaCode, result);
-    await saveDocValidationResult(conn, dvaCode, result.validation, weightsMatch);
+    await saveDocValidationResult(conn, dvaCode, result.validation);
 
     await conn.commit();
   } catch (e) {

@@ -78,25 +78,18 @@ export async function processDocValidationJob(
       JSON.stringify(crossCheck),
     );
 
-    const { sender, matchedInvoice } = applyDeclaredOverrides(crossCheck, declaredData);
+    const { matchedInvoice } = applyDeclaredOverrides(crossCheck, declaredData);
 
     const blockingMessages = await collectBlockingIssues(
       job.dvaCode,
       crossCheck,
-      sender,
       matchedInvoice,
     );
-
-    const weightsMatch =
-      !crossCheck.grossWeightKg.needsUpdate &&
-      !crossCheck.tareWeightKg.needsUpdate &&
-      !crossCheck.netWeightKg.needsUpdate;
 
     const validation: DocValidationResult = {
       matchedInvoice,
       plate: crossCheck.plate,
       contract: crossCheck.contract,
-      sender,
     };
 
     const result: DocValidationExtractedData = {
@@ -107,7 +100,7 @@ export async function processDocValidationJob(
       validation,
     };
 
-    await markDocValidationAsDone(job.dvaCode, pages, result, weightsMatch);
+    await markDocValidationAsDone(job.dvaCode, pages, result);
 
     const payload =
       blockingMessages.length > 0
@@ -115,7 +108,7 @@ export async function processDocValidationJob(
         : {
             success: true,
             validationId: job.dvaCode,
-            data: buildWebhookPayload(crossCheck),
+            data: buildWebhookPayload(extraction),
           };
 
     await sendDocValidationWebhook({
