@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS doc_validations (
+  dvaCode BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+  dvaStatus VARCHAR(1) NOT NULL DEFAULT 'A',
+  claCode BIGINT UNSIGNED NOT NULL,
+  dvaDeclaredData TEXT NOT NULL,
+  dvaFileKey VARCHAR(500) NOT NULL,
+  dvaFileUrl VARCHAR(500) NOT NULL,
+  dvaFileName VARCHAR(255) NOT NULL,
+  dvaFileMimetype VARCHAR(100) NOT NULL,
+  dvaFileSize INT UNSIGNED NOT NULL,
+  dvaPages TEXT NULL,
+  dvaResult TEXT NULL,
+  dvaAttempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  dvaLastError TEXT NULL,
+  dvaLastProcessStartedAt DATETIME NULL,
+  dvaCreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  dvaUpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX ixDocValidationsClaCode (claCode),
+  CONSTRAINT fkDocValidationsClaCode FOREIGN KEY (claCode) REFERENCES classifiers (claCode)
+) ENGINE = InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

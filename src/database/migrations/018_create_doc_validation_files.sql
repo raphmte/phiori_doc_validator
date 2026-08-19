@@ -1,0 +1,20 @@
+ALTER TABLE doc_validations
+  MODIFY dvaFileKey VARCHAR(500) NULL,
+  MODIFY dvaFileUrl VARCHAR(500) NULL,
+  MODIFY dvaFileName VARCHAR(255) NULL,
+  MODIFY dvaFileMimetype VARCHAR(100) NULL,
+  MODIFY dvaFileSize INT UNSIGNED NULL;
+
+CREATE TABLE IF NOT EXISTS doc_validation_files (
+  dvfCode BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+  dvaCode BIGINT UNSIGNED NOT NULL,
+  dvfType VARCHAR(20) NOT NULL,
+  dvfFileKey VARCHAR(500) NOT NULL,
+  dvfFileUrl VARCHAR(500) NOT NULL,
+  dvfFileName VARCHAR(255) NOT NULL,
+  dvfFileMimetype VARCHAR(100) NOT NULL,
+  dvfFileSize INT UNSIGNED NOT NULL,
+  dvfCreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX ixDocValidationFilesDvaCode (dvaCode),
+  CONSTRAINT fkDocValidationFilesDvaCode FOREIGN KEY (dvaCode) REFERENCES doc_validations (dvaCode)
+) ENGINE = InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

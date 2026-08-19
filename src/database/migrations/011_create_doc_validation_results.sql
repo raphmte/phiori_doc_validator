@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS doc_validation_results (
+  dvaCode BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+  dvrMatchedInvoiceAccessKey VARCHAR(44) NULL,
+  dvrPlateConfidencePercent TINYINT UNSIGNED NOT NULL,
+  dvrWeightsMatch TINYINT(1) NOT NULL,
+  dvrData JSON NOT NULL,
+  dvrCreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  dvrUpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fkDocValidationResultsDvaCode FOREIGN KEY (dvaCode) REFERENCES doc_validations (dvaCode)
+) ENGINE = InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

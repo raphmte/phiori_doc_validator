@@ -1,0 +1,38 @@
+{
+  "loadingOrder": {
+    "present": true,
+    "plate": "QBQ2697",
+    "loadingOrder": "12001331",
+    "contract": null,
+    "driverName": "SIDNEI ALBERTO SEMINOTTI",
+    "driverDocument": "345468719-53",
+    "driverPhone": "66992179767"
+  },
+  "invoices": [
+    {
+      "present": true,
+      "plate": "QBQ2697",
+      "grossWeightKg": 47600,
+      "tareWeightKg": null,
+      "netWeightKg": 47600,
+      "contract": "7876P60467S",
+      "accessKey": "51260852275517000197550010000000991215752671",
+      "driverName": "SIDNEI ALBERTO SEMINOTTI",
+      "driverDocument": null,
+      "driverPhone": null,
+      "invoiceDate": "11/08/2026",
+      "invoiceUnitValue": "2,1000",
+      "invoiceTotalValue": "99.960,00"
+    }
+  ],
+  "weighingTicket": {
+    "present": true,
+    "plate": "QBQ2697",
+    "grossWeightKg": 73820,
+    "tareWeightKg": 26220,
+    "netWeightKg": 47600,
+    "driverName": "SIDNEI ALBERTO"
+  },
+  "cnh": { "present": false },
+  "validation": { "isValid": true, "plateConfidencePercent": 100, "issues": [] }
+}
