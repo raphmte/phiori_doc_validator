@@ -9,9 +9,9 @@ export async function createDocValidationDeclaredData(
 ): Promise<void> {
   await conn.query(
     `INSERT INTO doc_validation_declared_data
-      (dvaCode, dvdContract, dvdPlate, dvdCliName, dvdCliDocument)
+      (dvaCode, dvdContract, dvdPlate, dvdInvoiceRecipientName, dvdInvoiceRecipientDocument)
      VALUES (?, ?, ?, ?, ?)`,
-    [dvaCode, data.contract, data.plate, data.cliName, data.cliDocument]
+    [dvaCode, data.contract, data.plate, data.invoiceRecipientName, data.invoiceRecipientDocument]
   );
 }
 
@@ -29,7 +29,7 @@ export async function findDeclaredDataByDvaCode(
   return {
     contract: row.dvdContract,
     plate: row.dvdPlate,
-    cliName: row.dvdCliName,
-    cliDocument: row.dvdCliDocument,
+    invoiceRecipientName: row.dvdInvoiceRecipientName,
+    invoiceRecipientDocument: row.dvdInvoiceRecipientDocument,
   };
 }

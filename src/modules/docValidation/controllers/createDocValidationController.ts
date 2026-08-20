@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { createDocValidationService } from "../services/createDocValidationService";
-import { declaredDataSchema } from "../declaredDataSchema";
 import { TParsedFile } from "../../../plugins/multipart";
+import { declaredDataSchema } from "../declaredDataSchema";
+import { createDocValidationService } from "../services/createDocValidationService";
 
 function isPdf(file: TParsedFile): boolean {
   return file.mimetype === "application/pdf";
@@ -9,11 +9,11 @@ function isPdf(file: TParsedFile): boolean {
 
 export async function createDocValidationController(
   request: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<FastifyReply> {
   const { fields, files } = request.parsedMultipart;
 
-  const document = files.document?.[0];
+  const document = files.bulk?.[0];
   const loadingOrder = files.loadingOrder?.[0];
   const weighingTicket = files.weighingTicket?.[0];
   const invoices = files.invoices ?? [];
@@ -38,13 +38,19 @@ export async function createDocValidationController(
     }
   } else {
     if (!loadingOrder) {
-      return reply.code(400).send({ error: "Arquivo da ordem de carregamento não informado" });
+      return reply
+        .code(400)
+        .send({ error: "Arquivo da ordem de carregamento não informado" });
     }
     if (!weighingTicket) {
-      return reply.code(400).send({ error: "Arquivo do ticket de balança não informado" });
+      return reply
+        .code(400)
+        .send({ error: "Arquivo do ticket de balança não informado" });
     }
     if (!invoices.length) {
-      return reply.code(400).send({ error: "Arquivo(s) de nota fiscal não informado(s)" });
+      return reply
+        .code(400)
+        .send({ error: "Arquivo(s) de nota fiscal não informado(s)" });
     }
     if (![loadingOrder, weighingTicket, ...invoices].every(isPdf)) {
       return reply.code(400).send({ error: "Todos os arquivos devem ser PDF" });
@@ -64,7 +70,11 @@ export async function createDocValidationController(
     declaredData: parsed.data,
     ...(isBulk
       ? { document: document! }
-      : { loadingOrder: loadingOrder!, weighingTicket: weighingTicket!, invoices }),
+      : {
+          loadingOrder: loadingOrder!,
+          weighingTicket: weighingTicket!,
+          invoices,
+        }),
   });
 
   return reply.code(202).send(result);

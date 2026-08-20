@@ -1,6 +1,5 @@
 import { PoolConnection } from "mariadb";
 import {
-  CnhExtractedFields,
   DocValidationExtractedData,
   DocValidationExtractedDocument,
   InvoiceExtractedFields,
@@ -11,14 +10,12 @@ import {
 export type DocValidationDocumentType =
   | "loadingOrder"
   | "invoice"
-  | "weighingTicket"
-  | "cnh";
+  | "weighingTicket";
 
 type PresentExtractedDocument =
   | Extract<DocValidationExtractedDocument<LoadingOrderExtractedFields>, { present: true }>
   | Extract<DocValidationExtractedDocument<InvoiceExtractedFields>, { present: true }>
-  | Extract<DocValidationExtractedDocument<TicketExtractedFields>, { present: true }>
-  | Extract<DocValidationExtractedDocument<CnhExtractedFields>, { present: true }>;
+  | Extract<DocValidationExtractedDocument<TicketExtractedFields>, { present: true }>;
 
 export async function saveDocValidationExtractedDocuments(
   conn: PoolConnection,
@@ -39,10 +36,6 @@ export async function saveDocValidationExtractedDocuments(
 
   if (result.weighingTicket?.present) {
     rows.push({ type: "weighingTicket", data: result.weighingTicket });
-  }
-
-  if (result.cnh?.present) {
-    rows.push({ type: "cnh", data: result.cnh });
   }
 
   if (!rows.length) return;

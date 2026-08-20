@@ -18,8 +18,8 @@ export function applyDeclaredOverrides(
 } {
   const matchedInvoice: DocValidationMatchedInvoice = {
     ...crossCheck.matchedInvoice,
-    declaredName: declaredData.cliName,
-    declaredDocument: declaredData.cliDocument,
+    declaredName: declaredData.invoiceRecipientName,
+    declaredDocument: declaredData.invoiceRecipientDocument,
     invoiceDocument: crossCheck.matchedInvoice.invoiceDocument
       ? maskCpfCnpj(crossCheck.matchedInvoice.invoiceDocument)
       : null,

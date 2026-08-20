@@ -1,8 +1,8 @@
 export interface DeclaredDocumentData {
   contract: string;
   plate: string;
-  cliName: string;
-  cliDocument: string;
+  invoiceRecipientName: string;
+  invoiceRecipientDocument: string;
 }
 
 // Campos extraídos da Ordem de Carregamento. Peso bruto/tara, contrato, chave de acesso e dados
@@ -87,13 +87,6 @@ export interface InvoiceExtractedFields {
   carrierStateRegistration: string | null;
 }
 
-// A CNH não tem regras de extração específicas hoje além da identidade do motorista — o resto
-// do que a IA achar nela cai em "extraFields".
-export interface CnhExtractedFields {
-  driverName: string | null;
-  driverDocument: string | null;
-}
-
 // Quando "present" é false, nenhum outro campo é retornado. Quando true, os campos fixos de
 // TFields sempre existem (nulos se não encontrados) e qualquer outro campo que a IA encontre
 // nesse documento (variam por layout de cada emissor) vai em "extraFields", para normalização futura.
@@ -152,7 +145,6 @@ export interface DocValidationExtractedData {
   loadingOrder: DocValidationExtractedDocument<LoadingOrderExtractedFields>;
   invoices: DocValidationExtractedDocument<InvoiceExtractedFields>[];
   weighingTicket: DocValidationExtractedDocument<TicketExtractedFields>;
-  cnh: DocValidationExtractedDocument<CnhExtractedFields>;
   validation: DocValidationResult;
 }
 
@@ -163,7 +155,6 @@ export interface DocValidationExtractionResult {
   loadingOrder: DocValidationExtractedDocument<LoadingOrderExtractedFields>;
   invoices: DocValidationExtractedDocument<InvoiceExtractedFields>[];
   weighingTicket: DocValidationExtractedDocument<TicketExtractedFields>;
-  cnh: DocValidationExtractedDocument<CnhExtractedFields>;
 }
 
 // Resultado da 2ª chamada ao DeepSeek: recebe declaredData + o resultado da 1ª chamada e faz,

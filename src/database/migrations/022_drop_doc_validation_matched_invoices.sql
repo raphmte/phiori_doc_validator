@@ -1,0 +1,1 @@
+DROP TABLE doc_validation_matched_invoices;

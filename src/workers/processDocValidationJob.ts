@@ -2,6 +2,7 @@ import { findDeclaredDataByDvaCode } from "../database/repositories/docValidatio
 import { findFilesByDvaCode } from "../database/repositories/docValidationFileRepository";
 import {
   DocValidation,
+  MAX_DOC_VALIDATION_ATTEMPTS,
   markDocValidationAsDone,
   markDocValidationAsFailed,
 } from "../database/repositories/docValidationRepository";
@@ -64,6 +65,16 @@ export async function processDocValidationJob(
       JSON.stringify(extraction),
     );
 
+    // Documentos que a extração não encontrou no PDF ("present": false, ou nenhuma nota em
+    // "invoices"). No bulk o cliente manda um único arquivo com tudo junto, então não dá pra
+    // apontar qual pedaço faltou — reporta só "bulk": false.
+    const filePresence = {
+      loadingOrder: extraction.loadingOrder.present,
+      weighingTicket: extraction.weighingTicket.present,
+      invoice: extraction.invoices.length > 0,
+    };
+    const hasMissingFile = Object.values(filePresence).some((present) => !present);
+
     const crossCheck =
       await DeepSeekHelper.callDeepSeek<DocValidationCrossCheckResult>(
         DOC_VALIDATION_CROSS_CHECK_PROMPT,
@@ -96,19 +107,24 @@ export async function processDocValidationJob(
       loadingOrder: extraction.loadingOrder,
       invoices: extraction.invoices,
       weighingTicket: extraction.weighingTicket,
-      cnh: extraction.cnh,
       validation,
     };
 
     await markDocValidationAsDone(job.dvaCode, pages, result);
 
-    const payload =
-      blockingMessages.length > 0
+    const payload = hasMissingFile
+      ? {
+          success: false,
+          validationId: job.dvaCode,
+          files: job.dvaFileKey ? { bulk: false } : filePresence,
+          message: "Não foi possível validar um ou mais documentos enviados.",
+        }
+      : blockingMessages.length > 0
         ? { success: false, validationId: job.dvaCode, message: blockingMessages.join(" ") }
         : {
             success: true,
             validationId: job.dvaCode,
-            data: buildWebhookPayload(extraction),
+            data: buildWebhookPayload(extraction, declaredData, matchedInvoice),
           };
 
     await sendDocValidationWebhook({
@@ -124,6 +140,21 @@ export async function processDocValidationJob(
       job.dvaAttempts,
       e?.message ?? "Erro desconhecido",
     );
+
+    // job.dvaAttempts já inclui a tentativa atual (incrementado em
+    // markDocValidationsAsProcessing antes do job rodar) — se ela esgotou o limite, não haverá
+    // retry, então avisa o cliente aqui pra ele não ficar esperando um webhook que nunca chega.
+    if (job.dvaAttempts >= MAX_DOC_VALIDATION_ATTEMPTS) {
+      await sendDocValidationWebhook({
+        claCode: job.claCode,
+        dvaCode: job.dvaCode,
+        payload: {
+          success: false,
+          validationId: job.dvaCode,
+          message: "Não foi possível concluir a validação do documento.",
+        },
+      });
+    }
   }
 }
 
