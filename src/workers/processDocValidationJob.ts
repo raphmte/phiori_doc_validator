@@ -22,6 +22,8 @@ import {
 } from "./prompt";
 import { sendDocValidationWebhook } from "../modules/docValidation/services/sendDocValidationWebhookService";
 import { dedupeInvoicesByAccessKey } from "./docValidationJob/dedupeInvoices";
+import { dedupeWeighingTicketsByTicketNumber } from "./docValidationJob/dedupeWeighingTickets";
+import { correctInvoiceTotalValues } from "./docValidationJob/correctInvoiceTotalValue";
 import { applyDeclaredOverrides } from "./docValidationJob/declaredOverrides";
 import { collectBlockingIssues } from "./docValidationJob/blockingIssues";
 import { buildWebhookPayload } from "./docValidationJob/webhookPayload";
@@ -59,18 +61,22 @@ export async function processDocValidationJob(
       );
 
     extraction.invoices = dedupeInvoicesByAccessKey(extraction.invoices ?? []);
+    extraction.invoices = correctInvoiceTotalValues(extraction.invoices);
+    extraction.weighingTickets = dedupeWeighingTicketsByTicketNumber(
+      extraction.weighingTickets ?? [],
+    );
 
     console.log(
       `DocValidation job ${job.dvaCode} resultado da extração do DeepSeek:`,
       JSON.stringify(extraction),
     );
 
-    // Documentos que a extração não encontrou no PDF ("present": false, ou nenhuma nota em
-    // "invoices"). No bulk o cliente manda um único arquivo com tudo junto, então não dá pra
+    // Documentos que a extração não encontrou no PDF ("present": false, ou nenhuma nota/ticket
+    // no array). No bulk o cliente manda um único arquivo com tudo junto, então não dá pra
     // apontar qual pedaço faltou — reporta só "bulk": false.
     const filePresence = {
       loadingOrder: extraction.loadingOrder.present,
-      weighingTicket: extraction.weighingTicket.present,
+      weighingTicket: extraction.weighingTickets.length > 0,
       invoice: extraction.invoices.length > 0,
     };
     const hasMissingFile = Object.values(filePresence).some((present) => !present);
@@ -95,6 +101,7 @@ export async function processDocValidationJob(
       job.dvaCode,
       crossCheck,
       matchedInvoice,
+      extraction,
     );
 
     const validation: DocValidationResult = {
@@ -106,7 +113,7 @@ export async function processDocValidationJob(
     const result: DocValidationExtractedData = {
       loadingOrder: extraction.loadingOrder,
       invoices: extraction.invoices,
-      weighingTicket: extraction.weighingTicket,
+      weighingTickets: extraction.weighingTickets,
       validation,
     };
 

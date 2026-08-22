@@ -34,8 +34,10 @@ export async function saveDocValidationExtractedDocuments(
     }
   }
 
-  if (result.weighingTicket?.present) {
-    rows.push({ type: "weighingTicket", data: result.weighingTicket });
+  for (const weighingTicket of result.weighingTickets ?? []) {
+    if (weighingTicket.present) {
+      rows.push({ type: "weighingTicket", data: weighingTicket });
+    }
   }
 
   if (!rows.length) return;

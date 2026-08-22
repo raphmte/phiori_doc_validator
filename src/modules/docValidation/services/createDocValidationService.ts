@@ -11,7 +11,7 @@ interface BulkInput {
 
 interface SplitInput {
   loadingOrder: TParsedFile;
-  weighingTicket: TParsedFile;
+  weighingTickets: TParsedFile[];
   invoices: TParsedFile[];
 }
 
@@ -62,11 +62,15 @@ export async function createDocValidationService(
     return { validationId: validation.dvaCode };
   }
 
-  const { loadingOrder, weighingTicket, invoices } = input;
+  const { loadingOrder, weighingTickets, invoices } = input;
 
   const uploads: { dvfType: CreateDocValidationFileInput["dvfType"]; file: TParsedFile; suffix: string }[] = [
     { dvfType: "loadingOrder", file: loadingOrder, suffix: "loading-order" },
-    { dvfType: "weighingTicket", file: weighingTicket, suffix: "weighing-ticket" },
+    ...weighingTickets.map((file, index) => ({
+      dvfType: "weighingTicket" as const,
+      file,
+      suffix: `weighing-ticket-${index}`,
+    })),
     ...invoices.map((file, index) => ({
       dvfType: "invoice" as const,
       file,

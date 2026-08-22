@@ -144,7 +144,7 @@ export interface DocValidationResult {
 export interface DocValidationExtractedData {
   loadingOrder: DocValidationExtractedDocument<LoadingOrderExtractedFields>;
   invoices: DocValidationExtractedDocument<InvoiceExtractedFields>[];
-  weighingTicket: DocValidationExtractedDocument<TicketExtractedFields>;
+  weighingTickets: DocValidationExtractedDocument<TicketExtractedFields>[];
   validation: DocValidationResult;
 }
 
@@ -154,7 +154,7 @@ export interface DocValidationExtractedData {
 export interface DocValidationExtractionResult {
   loadingOrder: DocValidationExtractedDocument<LoadingOrderExtractedFields>;
   invoices: DocValidationExtractedDocument<InvoiceExtractedFields>[];
-  weighingTicket: DocValidationExtractedDocument<TicketExtractedFields>;
+  weighingTickets: DocValidationExtractedDocument<TicketExtractedFields>[];
 }
 
 // Resultado da 2ª chamada ao DeepSeek: recebe declaredData + o resultado da 1ª chamada e faz,

@@ -14,7 +14,7 @@ declare module "fastify" {
     parsedMultipart: {
       fields: Record<string, any>;
       // Sempre array por fieldname (mesmo quando só 1 arquivo é esperado) para suportar campos
-      // com múltiplos arquivos, como "invoices" no createDocValidationController.
+      // com múltiplos arquivos, como "invoices" e "weighingTicket" no createDocValidationController.
       files: Record<string, TParsedFile[]>;
     };
   }

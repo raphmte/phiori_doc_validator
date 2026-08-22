@@ -15,11 +15,11 @@ export async function createDocValidationController(
 
   const document = files.bulk?.[0];
   const loadingOrder = files.loadingOrder?.[0];
-  const weighingTicket = files.weighingTicket?.[0];
+  const weighingTickets = files.weighingTicket ?? [];
   const invoices = files.invoices ?? [];
 
   const isBulk = !!document;
-  const isSplit = !!loadingOrder || !!weighingTicket || invoices.length > 0;
+  const isSplit = !!loadingOrder || weighingTickets.length > 0 || invoices.length > 0;
 
   if (isBulk && isSplit) {
     return reply.code(400).send({
@@ -42,17 +42,17 @@ export async function createDocValidationController(
         .code(400)
         .send({ error: "Arquivo da ordem de carregamento não informado" });
     }
-    if (!weighingTicket) {
+    if (!weighingTickets.length) {
       return reply
         .code(400)
-        .send({ error: "Arquivo do ticket de balança não informado" });
+        .send({ error: "Arquivo(s) de ticket de balança não informado(s)" });
     }
     if (!invoices.length) {
       return reply
         .code(400)
         .send({ error: "Arquivo(s) de nota fiscal não informado(s)" });
     }
-    if (![loadingOrder, weighingTicket, ...invoices].every(isPdf)) {
+    if (![loadingOrder, ...weighingTickets, ...invoices].every(isPdf)) {
       return reply.code(400).send({ error: "Todos os arquivos devem ser PDF" });
     }
   }
@@ -72,7 +72,7 @@ export async function createDocValidationController(
       ? { document: document! }
       : {
           loadingOrder: loadingOrder!,
-          weighingTicket: weighingTicket!,
+          weighingTickets,
           invoices,
         }),
   });
