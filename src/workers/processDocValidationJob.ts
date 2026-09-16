@@ -21,6 +21,8 @@ import {
   DOC_VALIDATION_EXTRACTION_PROMPT,
 } from "./prompt";
 import { sendDocValidationWebhook } from "../modules/docValidation/services/sendDocValidationWebhookService";
+import { createDocValidationIntegration } from "../database/repositories/docValidationIntegrationRepository";
+import { INTEGRATION_SYSTEMS } from "../modules/integrations/integrationTypes";
 import { dedupeInvoicesByAccessKey } from "./docValidationJob/dedupeInvoices";
 import { dedupeWeighingTicketsByTicketNumber } from "./docValidationJob/dedupeWeighingTickets";
 import { correctInvoiceTotalValues } from "./docValidationJob/correctInvoiceTotalValue";
@@ -139,6 +141,15 @@ export async function processDocValidationJob(
       dvaCode: job.dvaCode,
       payload,
     });
+
+    // Só entra na fila de integrações quando a validação terminou com sucesso: dado bloqueado ou
+    // com arquivo faltante não é resultado pronto para seguir para outro sistema.
+    if (payload.success) {
+      await createDocValidationIntegration({
+        dvaCode: job.dvaCode,
+        system: INTEGRATION_SYSTEMS.PHIORI,
+      });
+    }
   } catch (e: any) {
     console.error(`DocValidation job ${job.dvaCode} falhou:`, e);
 
