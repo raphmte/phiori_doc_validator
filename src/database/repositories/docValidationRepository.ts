@@ -20,6 +20,7 @@ export interface DocValidation {
   dvaCode: string;
   dvaStatus: "A" | "P" | "D" | "E";
   claCode: string;
+  dvaTrader: string;
   dvaFileKey: string | null;
   dvaFileUrl: string | null;
   dvaFileName: string | null;
@@ -39,6 +40,7 @@ export interface DocValidation {
 export interface CreateDocValidationInput {
   dvaCode: string;
   claCode: string;
+  trader: string;
   declaredData: DeclaredDocumentData;
   file?: {
     key: string;
@@ -63,11 +65,12 @@ export async function createDocValidation(
 
     await conn.query(
       `INSERT INTO doc_validations
-        (dvaCode, claCode, dvaFileKey, dvaFileUrl, dvaFileName, dvaFileMimetype, dvaFileSize)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        (dvaCode, claCode, dvaTrader, dvaFileKey, dvaFileUrl, dvaFileName, dvaFileMimetype, dvaFileSize)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         dvaCode,
         input.claCode,
+        input.trader,
         input.file?.key ?? null,
         input.file?.fileUrl ?? null,
         input.file?.fileName ?? null,

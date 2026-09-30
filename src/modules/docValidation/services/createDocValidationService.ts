@@ -17,6 +17,7 @@ interface SplitInput {
 
 export type CreateDocValidationInput = {
   claCode: string;
+  trader: string;
   declaredData: DeclaredDocumentData;
 } & (BulkInput | SplitInput);
 
@@ -33,7 +34,7 @@ function isBulkInput(
 export async function createDocValidationService(
   input: CreateDocValidationInput,
 ): Promise<CreateDocValidationOutput> {
-  const { claCode, declaredData } = input;
+  const { claCode, trader, declaredData } = input;
 
   const dvaCode = generateSnowflakeId();
 
@@ -49,6 +50,7 @@ export async function createDocValidationService(
     const validation = await createDocValidation({
       dvaCode,
       claCode,
+      trader,
       declaredData,
       file: {
         key,
@@ -101,6 +103,7 @@ export async function createDocValidationService(
   const validation = await createDocValidation({
     dvaCode,
     claCode,
+    trader,
     declaredData,
     files,
   });

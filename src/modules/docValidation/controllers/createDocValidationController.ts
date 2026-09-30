@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { TParsedFile } from "../../../plugins/multipart";
+import { PHIORI_TRADERS, isPhioriTrader } from "../../integrations/providers/phioriTraders";
 import { declaredDataSchema } from "../declaredDataSchema";
 import { createDocValidationService } from "../services/createDocValidationService";
 
@@ -57,6 +58,17 @@ export async function createDocValidationController(
     }
   }
 
+  // Para quem esta validação vai depois de aprovada (ver sendToPhiori.ts) — o cliente informa
+  // explicitamente em vez de assumir a única trader existente hoje, para não quebrar quando uma
+  // segunda trader entrar. Normaliza para lowercase antes de checar: "COFCO"/"Cofco" não deve
+  // depender de como o cliente digitou.
+  const trader = String(fields.trader ?? "").trim().toLowerCase();
+  if (!isPhioriTrader(trader)) {
+    return reply.code(400).send({
+      error: `Trader inválida ou não informada. Valores aceitos: ${PHIORI_TRADERS.join(", ")}`,
+    });
+  }
+
   const parsed = declaredDataSchema.safeParse(fields);
 
   if (!parsed.success) {
@@ -67,6 +79,7 @@ export async function createDocValidationController(
 
   const result = await createDocValidationService({
     claCode: request.claCode,
+    trader,
     declaredData: parsed.data,
     ...(isBulk
       ? { document: document! }
